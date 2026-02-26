@@ -1,0 +1,112 @@
+{
+  "name": "Students_dropout",
+  "email_notifications": {
+    "no_alert_for_skipped_runs": false
+  },
+  "webhook_notifications": {},
+  "timeout_seconds": 0,
+  "max_concurrent_runs": 1,
+  "tasks": [
+    {
+      "task_key": "Drop_table_if_exists",
+      "run_if": "ALL_SUCCESS",
+      "sql_task": {
+        "query": {
+          "query_id": "2dd13a01-0f11-454e-8ab2-711e40d5e8c6"
+        },
+        "warehouse_id": "081923426b3b848f"
+      },
+      "timeout_seconds": 0,
+      "email_notifications": {},
+      "webhook_notifications": {}
+    },
+    {
+      "task_key": "Ingest_data_from_CSV",
+      "run_if": "ALL_SUCCESS",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/aleksandra.tanska@atos.net/Data Ingestion - bronze layer",
+        "source": "WORKSPACE"
+      },
+      "timeout_seconds": 0,
+      "email_notifications": {},
+      "webhook_notifications": {}
+    },
+    {
+      "task_key": "Create_table_bronze_layer",
+      "depends_on": [
+        {
+          "task_key": "Ingest_data_from_CSV"
+        },
+        {
+          "task_key": "Drop_table_if_exists"
+        }
+      ],
+      "run_if": "ALL_SUCCESS",
+      "sql_task": {
+        "query": {
+          "query_id": "f9034a06-991c-4fd6-b017-384364b27856"
+        },
+        "warehouse_id": "081923426b3b848f"
+      },
+      "timeout_seconds": 0,
+      "email_notifications": {},
+      "webhook_notifications": {}
+    },
+    {
+      "task_key": "Data_Transformation_silver_layer",
+      "depends_on": [
+        {
+          "task_key": "Create_table_bronze_layer"
+        }
+      ],
+      "run_if": "ALL_SUCCESS",
+      "notebook_task": {
+        "notebook_path": "/Workspace/Users/aleksandra.tanska@atos.net/Data Transformation - silver layer",
+        "source": "WORKSPACE"
+      },
+      "timeout_seconds": 0,
+      "email_notifications": {},
+      "webhook_notifications": {}
+    },
+    {
+      "task_key": "Dropout_rate_per_Department",
+      "depends_on": [
+        {
+          "task_key": "Data_Transformation_silver_layer"
+        }
+      ],
+      "run_if": "ALL_SUCCESS",
+      "sql_task": {
+        "query": {
+          "query_id": "a6c23a49-4a21-4fad-8225-2063fe147f77"
+        },
+        "warehouse_id": "081923426b3b848f"
+      },
+      "timeout_seconds": 0,
+      "email_notifications": {},
+      "webhook_notifications": {}
+    },
+    {
+      "task_key": "Average_GPA_per_Semester",
+      "depends_on": [
+        {
+          "task_key": "Dropout_rate_per_Department"
+        }
+      ],
+      "run_if": "ALL_SUCCESS",
+      "sql_task": {
+        "query": {
+          "query_id": "75fa63fa-1b11-4700-9467-c9f03c792012"
+        },
+        "warehouse_id": "081923426b3b848f"
+      },
+      "timeout_seconds": 0,
+      "email_notifications": {},
+      "webhook_notifications": {}
+    }
+  ],
+  "queue": {
+    "enabled": true
+  },
+  "performance_target": "PERFORMANCE_OPTIMIZED"
+}
